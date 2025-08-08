@@ -112,6 +112,54 @@ m = {
 }
 ```
 
+## EasyMotion Integration
+
+This plugin can be integrated with EasyMotion to toggle migemo support dynamically:
+
+```lua
+-- Advanced toggle with EasyMotion integration
+m = {
+  name = 'migemo',
+  get_state = function()
+    return vim.g.migemo_enabled and 'on' or 'off'
+  end,
+  set_state = function(state)
+    local migemo = require('incsearch-migemo')
+    if state == 'on' and migemo.has_migemo() then
+      -- Enable migemo for both incsearch and EasyMotion
+      vim.keymap.set('n', '/', migemo.forward)
+      vim.keymap.set('n', '?', migemo.backward)
+      vim.keymap.set('n', 'g/', migemo.stay)
+      vim.g.EasyMotion_use_migemo = 1
+      
+      -- Reload EasyMotion to apply migemo setting
+      pcall(function()
+        local lazy = require('lazy')
+        lazy.reload({plugins = {'vim-easymotion'}})
+      end)
+      
+      vim.g.migemo_enabled = true
+    else
+      -- Disable migemo
+      vim.keymap.del('n', '/')
+      vim.keymap.del('n', '?')
+      vim.keymap.del('n', 'g/')
+      vim.g.EasyMotion_use_migemo = 0
+      
+      -- Reload EasyMotion to apply setting
+      pcall(function()
+        local lazy = require('lazy')
+        lazy.reload({plugins = {'vim-easymotion'}})
+      end)
+      
+      vim.g.migemo_enabled = false
+    end
+  end
+}
+```
+
+**Note**: EasyMotion's migemo setting (`g:EasyMotion_use_migemo`) is only read during plugin initialization. To toggle it dynamically, we use `lazy.reload()` to reinitialize the plugin.
+
 ## License
 
 MIT License
